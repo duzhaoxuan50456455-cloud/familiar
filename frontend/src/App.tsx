@@ -81,6 +81,7 @@ function FamiliarApp() {
       <ChallengeView
         key={current.id}
         challenge={current}
+        challengeIndex={currentIndex}
         challengeNumber={currentIndex + 1}
         totalChallenges={summaries.length}
         onChallengeDone={handleChallengeDone}

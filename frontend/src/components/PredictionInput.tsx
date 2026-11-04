@@ -16,15 +16,23 @@ import { useState, useRef } from 'react'
 import type { ExerciseOutputResponse, ExerciseType } from '../types'
 import { fetchExerciseOutput } from '../api/client'
 import { normalize } from '../utils/normalize'
+import { useSession } from '../context/SessionContext'
 
 interface PredictionInputProps {
   challengeId: string
+  challengeIndex: number
   exerciseType: ExerciseType
   /** Called once, after a successful fetch, with the locked prediction and API response. */
   onVerified: (prediction: string, correct: boolean, response: ExerciseOutputResponse) => void
 }
 
-export function PredictionInput({ challengeId, exerciseType, onVerified }: PredictionInputProps) {
+export function PredictionInput({
+  challengeId,
+  challengeIndex,
+  exerciseType,
+  onVerified,
+}: PredictionInputProps) {
+  const { dispatch } = useSession()
   const [draft, setDraft] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -45,8 +53,15 @@ export function PredictionInput({ challengeId, exerciseType, onVerified }: Predi
       const response = await fetchExerciseOutput(challengeId, exerciseType)
       const correct = normalize(draft) === normalize(response.expected_output)
 
-      // Successful: commit atomically via the callback. The parent will
-      // replace this component with ResultPanel.
+      // A successful response is the only path that commits evidence. The
+      // dispatch and result callback happen in this same synchronous update.
+      dispatch({
+        type: 'SUBMIT_PREDICTION',
+        challengeIndex,
+        exerciseType,
+        prediction: draft,
+        correct,
+      })
       onVerified(draft, correct, response)
     } catch (err) {
       // Network or backend error: preserve draft, allow retry, no attempt recorded.

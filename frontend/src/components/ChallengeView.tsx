@@ -12,6 +12,7 @@ import { ExercisePanel } from './ExercisePanel'
 
 interface ChallengeViewProps {
   challenge: ChallengeSummary
+  challengeIndex: number
   challengeNumber: number
   totalChallenges: number
   onChallengeDone: () => void
@@ -19,6 +20,7 @@ interface ChallengeViewProps {
 
 export function ChallengeView({
   challenge,
+  challengeIndex,
   challengeNumber,
   totalChallenges,
   onChallengeDone,
@@ -35,6 +37,7 @@ export function ChallengeView({
 
       <ExercisePanel
         challenge={challenge}
+        challengeIndex={challengeIndex}
         onExerciseDone={onChallengeDone}
       />
     </div>

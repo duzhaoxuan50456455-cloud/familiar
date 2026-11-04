@@ -1,12 +1,11 @@
 /**
  * SessionContext — global session state for the Familiar learning session.
  *
- * Milestone 2 stub: only LOAD_CHALLENGES is implemented.
- * Evidence tracking actions (SUBMIT_PREDICTION, VIEW_ASSISTANCE, etc.) are
- * added in Milestone 3. Policy events are added in Milestone 4.
+ * Milestone 3: records the immutable first-attempt evidence for each exercise.
+ * Assistance policy events remain a later milestone.
  */
 
-import React, {
+import {
   createContext,
   useCallback,
   useContext,
@@ -30,6 +29,16 @@ import type {
 
 export type SessionAction =
   | { type: 'LOAD_CHALLENGES'; challenges: ChallengeSummary[] }
+  | {
+      type: 'SUBMIT_PREDICTION'
+      challengeIndex: number
+      exerciseType: ExerciseType
+      prediction: string
+      correct: boolean
+    }
+  | { type: 'VIEW_ASSISTANCE'; challengeIndex: number; exerciseType: ExerciseType }
+  | { type: 'COMPLETE_CHALLENGE'; challengeIndex: number }
+  | { type: 'ADVANCE_TO_NEXT_EXERCISE'; challengeIndex: number }
 
 // ---------------------------------------------------------------------------
 // Initial state
@@ -76,13 +85,96 @@ function challengeSummaryToRecord(summary: ChallengeSummary): ChallengeRecord {
 // Reducer
 // ---------------------------------------------------------------------------
 
-function sessionReducer(state: SessionState, action: SessionAction): SessionState {
+function updateChallenge(
+  state: SessionState,
+  challengeIndex: number,
+  update: (challenge: ChallengeRecord) => ChallengeRecord,
+): SessionState {
+  const challenge = state.challenges[challengeIndex]
+  if (!challenge) return state
+
+  const challenges = [...state.challenges]
+  challenges[challengeIndex] = update(challenge)
+  return { ...state, challenges }
+}
+
+function latestDownwardEventIndex(state: SessionState): number | null {
+  for (let index = state.policyHistory.length - 1; index >= 0; index -= 1) {
+    const event = state.policyHistory[index]
+    if (event.trigger === 'downward_auto' || event.trigger === 'learner_request') {
+      return event.eventIndex
+    }
+  }
+  return null
+}
+
+export function sessionReducer(state: SessionState, action: SessionAction): SessionState {
   switch (action.type) {
     case 'LOAD_CHALLENGES':
       return {
         ...state,
         challenges: action.challenges.map(challengeSummaryToRecord),
       }
+
+    case 'SUBMIT_PREDICTION':
+      return updateChallenge(state, action.challengeIndex, (challenge) => {
+        const exercise = challenge.exercises[action.exerciseType]
+        const updatedExercise = exercise.firstPrediction === null
+          ? {
+              ...exercise,
+              firstPrediction: action.prediction,
+              firstPredictionCorrect: action.correct,
+              firstAttemptTag: exercise.assistanceViewedBeforeFirstPrediction
+                ? 'after_assistance' as const
+                : 'unaided' as const,
+              attemptCount: 1,
+            }
+          : { ...exercise, attemptCount: exercise.attemptCount + 1 }
+
+        return {
+          ...challenge,
+          exercises: { ...challenge.exercises, [action.exerciseType]: updatedExercise },
+        }
+      })
+
+    case 'VIEW_ASSISTANCE':
+      return updateChallenge(state, action.challengeIndex, (challenge) => {
+        const exercise = challenge.exercises[action.exerciseType]
+        if (exercise.firstPrediction !== null || exercise.assistanceViewedBeforeFirstPrediction) {
+          return challenge
+        }
+
+        return {
+          ...challenge,
+          exercises: {
+            ...challenge.exercises,
+            [action.exerciseType]: { ...exercise, assistanceViewedBeforeFirstPrediction: true },
+          },
+        }
+      })
+
+    case 'ADVANCE_TO_NEXT_EXERCISE':
+      return updateChallenge(state, action.challengeIndex, (challenge) => {
+        if (challenge.completed) return challenge
+        const nextExercise: Record<ExerciseType, ExerciseType> = {
+          original: 'mutation',
+          mutation: 'transfer',
+          transfer: 'transfer',
+        }
+        if (challenge.currentExercise === 'transfer') return challenge
+        return { ...challenge, currentExercise: nextExercise[challenge.currentExercise] }
+      })
+
+    case 'COMPLETE_CHALLENGE':
+      return updateChallenge(state, action.challengeIndex, (challenge) => {
+        // Completion is idempotent: its policy-window snapshot cannot be altered later.
+        if (challenge.completed) return challenge
+        return {
+          ...challenge,
+          completed: true,
+          lastDownwardTransitionIndexBeforeCompletion: latestDownwardEventIndex(state),
+        }
+      })
 
     default:
       return state
@@ -141,6 +233,3 @@ export function useSession(): SessionContextValue {
   return ctx
 }
 
-// Suppress the unused-import warning: React is used implicitly via JSX transform
-// and explicitly for the React.* namespace if needed in future.
-void React
