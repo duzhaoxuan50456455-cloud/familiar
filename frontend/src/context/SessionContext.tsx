@@ -41,6 +41,7 @@ export type SessionAction =
   | { type: 'COMPLETE_CHALLENGE'; challengeIndex: number }
   | { type: 'ADVANCE_TO_NEXT_EXERCISE'; challengeIndex: number }
   | { type: 'RECORD_POLICY_EVENT'; event: Omit<PolicyEvent, 'eventIndex'> }
+  | { type: 'SESSION_COMPLETE' }
 
 // ---------------------------------------------------------------------------
 // Initial state
@@ -186,6 +187,9 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
         policyHistory: [...state.policyHistory, event],
       }
     }
+
+    case 'SESSION_COMPLETE':
+      return { ...state, sessionComplete: true }
 
     default:
       return state

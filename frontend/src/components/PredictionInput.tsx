@@ -22,6 +22,7 @@ interface PredictionInputProps {
   challengeId: string
   challengeIndex: number
   exerciseType: ExerciseType
+  onTyping?: () => void
   /** Called once, after a successful fetch, with the locked prediction and API response. */
   onVerified: (prediction: string, correct: boolean, response: ExerciseOutputResponse) => void
 }
@@ -30,6 +31,7 @@ export function PredictionInput({
   challengeId,
   challengeIndex,
   exerciseType,
+  onTyping,
   onVerified,
 }: PredictionInputProps) {
   const { dispatch } = useSession()
@@ -84,7 +86,7 @@ export function PredictionInput({
         id="prediction-textarea"
         className="prediction-textarea"
         value={draft}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => { setDraft(e.target.value); onTyping?.() }}
         placeholder="Type the exact output here, one line per line…"
         rows={4}
         spellCheck={false}

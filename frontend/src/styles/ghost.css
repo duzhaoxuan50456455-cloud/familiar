@@ -1,0 +1,7 @@
+.ghost-companion { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--accent-border); border-radius:10px; background:var(--accent-bg); transition:opacity .4s,filter .4s,transform .4s; }
+.ghost-sprite { width:52px; height:52px; flex:none; fill:#b36bff; stroke:#6d28d9; stroke-width:3; shape-rendering:crispEdges; }
+.ghost-eye { fill:var(--text-h); stroke:none; }.ghost-mouth { fill:none; stroke:var(--text-h); stroke-width:3; }
+.ghost-message { margin:0; text-align:left; color:var(--text-h); font-size:.88rem; }.ghost-hint { opacity:.72; transform:scale(.92); }.ghost-independent { opacity:.45; filter:saturate(.55); transform:scale(.84); }.ghost-independent .ghost-sprite { fill:transparent; }
+.ghost-reaction-idle .ghost-sprite { animation:ghost-float 1.8s ease-in-out infinite; }.ghost-reaction-thinking .ghost-sprite { animation:ghost-think 1.4s ease-in-out infinite; }.ghost-reaction-correct .ghost-sprite { animation:ghost-correct .7s ease-out; }.ghost-reaction-incorrect .ghost-sprite { animation:ghost-incorrect .55s ease-in-out; }
+@keyframes ghost-float { 50% { transform:translateY(-3px); } } @keyframes ghost-think { 50% { transform:translateY(-4px) rotate(-3deg); } } @keyframes ghost-correct { 50% { transform:translateY(-8px); } } @keyframes ghost-incorrect { 25%,75% { transform:translateX(-4px); } 50% { transform:translateX(4px); } }
+@media (prefers-reduced-motion: reduce) { .ghost-companion, .ghost-sprite { animation:none !important; transition:none; } }

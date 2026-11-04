@@ -11,12 +11,17 @@ import { CodeBlock } from './CodeBlock'
 import { PredictionInput } from './PredictionInput'
 import { ResultPanel } from './ResultPanel'
 import { useSession } from '../context/SessionContext'
+import { fetchExerciseOutput } from '../api/client'
+import { HintButton } from './HintButton'
+import { AssistancePanel } from './AssistancePanel'
+import type { GhostReaction } from './GhostCompanion'
 
 interface ExercisePanelProps {
   challenge: ChallengeSummary
   challengeIndex: number
   /** Called only after the transfer exercise completes. */
   onExerciseDone: () => void
+  onReaction: (reaction: GhostReaction, message: string) => void
 }
 
 interface VerifiedState {
@@ -25,10 +30,13 @@ interface VerifiedState {
   response: ExerciseOutputResponse
 }
 
-export function ExercisePanel({ challenge, challengeIndex, onExerciseDone }: ExercisePanelProps) {
+export function ExercisePanel({ challenge, challengeIndex, onExerciseDone, onReaction }: ExercisePanelProps) {
   const { state, dispatch } = useSession()
   const [verified, setVerified] = useState<VerifiedState | null>(null)
   const [verifiedExercise, setVerifiedExercise] = useState<ExerciseType | null>(null)
+  const [assistanceResponse, setAssistanceResponse] = useState<ExerciseOutputResponse | null>(null)
+  const [hintShown, setHintShown] = useState(false)
+  const [hintLoading, setHintLoading] = useState(false)
 
   const challengeRecord = state.challenges[challengeIndex]
   const exerciseType = challengeRecord?.currentExercise ?? 'original'
@@ -48,11 +56,34 @@ export function ExercisePanel({ challenge, challengeIndex, onExerciseDone }: Exe
     // PredictionInput has already committed evidence from its successful response.
     setVerified({ prediction, correct, response })
     setVerifiedExercise(exerciseType)
+    setAssistanceResponse(response)
+    const unaided = !challengeRecord?.exercises[exerciseType].assistanceViewedBeforeFirstPrediction
+    onReaction(
+      correct ? 'correct' : 'incorrect',
+      correct
+        ? unaided ? 'You reasoned that through without a hint.' : 'Nice reasoning. You checked your prediction.'
+        : 'That was a useful check. I can help you trace it.',
+    )
+  }
+
+  async function handleShowHint() {
+    if (hintShown || hintLoading) return
+    setHintLoading(true)
+    try {
+      const response = assistanceResponse ?? await fetchExerciseOutput(challenge.id, exerciseType)
+      setAssistanceResponse(response)
+      dispatch({ type: 'VIEW_ASSISTANCE', challengeIndex, exerciseType })
+      setHintShown(true)
+    } finally {
+      setHintLoading(false)
+    }
   }
 
   function handleContinue() {
     setVerified(null)
     setVerifiedExercise(null)
+    setAssistanceResponse(null)
+    setHintShown(false)
     if (exerciseType === 'transfer') {
       dispatch({ type: 'COMPLETE_CHALLENGE', challengeIndex })
       onExerciseDone()
@@ -80,6 +111,10 @@ export function ExercisePanel({ challenge, challengeIndex, onExerciseDone }: Exe
     mutation: 'Continue to Transfer →',
     transfer: 'Finish challenge →',
   }
+  const automaticPanel = isCurrentResult && !verified.correct
+    ? state.assistanceLevel === 'guided' ? 'walkthrough' : state.assistanceLevel === 'hint' ? 'hint' : 'encouragement'
+    : isCurrentResult ? 'encouragement' : null
+  const walkthroughShown = automaticPanel === 'walkthrough'
 
   return (
     <div className="exercise-panel">
@@ -102,6 +137,7 @@ export function ExercisePanel({ challenge, challengeIndex, onExerciseDone }: Exe
           challengeId={challenge.id}
           challengeIndex={challengeIndex}
           exerciseType={exerciseType}
+          onTyping={() => onReaction('thinking', 'Take a moment to predict before you check.')}
           onVerified={handleVerified}
         />
       ) : (
@@ -111,6 +147,9 @@ export function ExercisePanel({ challenge, challengeIndex, onExerciseDone }: Exe
             correct={verified.correct}
             outputResponse={verified.response}
           />
+          {automaticPanel && <AssistancePanel kind={automaticPanel} hint={assistanceResponse?.hint} walkthrough={assistanceResponse?.walkthrough} correct={verified.correct} />}
+          {hintShown && !walkthroughShown && <AssistancePanel kind="hint" hint={assistanceResponse?.hint} />}
+          {!walkthroughShown && <HintButton shown={hintShown} loading={hintLoading} onShow={() => { void handleShowHint() }} />}
           <button
             type="button"
             className="btn btn-secondary"
@@ -120,6 +159,10 @@ export function ExercisePanel({ challenge, challengeIndex, onExerciseDone }: Exe
           </button>
         </>
       )}
+      {!isCurrentResult && <>
+        {hintShown && <AssistancePanel kind="hint" hint={assistanceResponse?.hint} />}
+        <HintButton shown={hintShown} loading={hintLoading} onShow={() => { void handleShowHint() }} />
+      </>}
     </div>
   )
 }

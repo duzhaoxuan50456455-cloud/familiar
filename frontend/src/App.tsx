@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react'
 import { useSession, SessionProvider } from './context/SessionContext'
 import { ChallengeView } from './components/ChallengeView'
+import { ProgressReport } from './components/ProgressReport'
 import { fetchChallenges } from './api/client'
 import type { ChallengeSummary } from './types'
 import './App.css'
@@ -17,12 +18,13 @@ import './App.css'
 // ---------------------------------------------------------------------------
 
 function FamiliarApp() {
-  const { dispatch } = useSession()
+  const { state, dispatch } = useSession()
 
   const [summaries, setSummaries] = useState<ChallengeSummary[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [route, setRoute] = useState(() => window.location.pathname)
 
   useEffect(() => {
     fetchChallenges()
@@ -63,13 +65,18 @@ function FamiliarApp() {
     )
   }
 
+  if (route === '/report' && state.sessionComplete) {
+    return <ProgressReport state={state} challenges={summaries} />
+  }
+
   const isLast = currentIndex === summaries.length - 1
   const current = summaries[currentIndex]
 
   function handleChallengeDone() {
     if (isLast) {
-      // Milestone 6 will replace this with navigation to /report
-      alert('Session complete! Progress report coming in a later milestone.')
+      dispatch({ type: 'SESSION_COMPLETE' })
+      window.history.pushState({}, '', '/report')
+      setRoute('/report')
     } else {
       setCurrentIndex((i) => i + 1)
     }

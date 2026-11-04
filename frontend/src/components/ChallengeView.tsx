@@ -11,6 +11,8 @@ import { useEffect, useState } from 'react'
 import type { ChallengeSummary, PolicyEvent } from '../types'
 import { ExercisePanel } from './ExercisePanel'
 import { GetMoreHelpButton } from './GetMoreHelpButton'
+import { GhostCompanion, type GhostReaction } from './GhostCompanion'
+import { PolicyAnnouncement } from './PolicyAnnouncement'
 import { useSession } from '../context/SessionContext'
 import { evaluatePolicy, type PolicyDecision, type PolicyTrigger } from '../policy/assistancePolicy'
 
@@ -33,6 +35,8 @@ export function ChallengeView({
   const [completionPending, setCompletionPending] = useState(false)
   const [announcement, setAnnouncement] = useState<string | null>(null)
   const [readyToAdvance, setReadyToAdvance] = useState(false)
+  const [reaction, setReaction] = useState<GhostReaction>('idle')
+  const [ghostMessage, setGhostMessage] = useState('Make a prediction before you check.')
   const challengeRecord = state.challenges[challengeIndex]
   const levelLabel = {
     guided: 'Guided',
@@ -59,6 +63,7 @@ export function ChallengeView({
       },
     })
     setAnnouncement(decision.policy_reason)
+    setGhostMessage(decision.newLevel === 'independent' ? 'You are growing more independent, one careful prediction at a time.' : decision.newLevel === 'hint' ? 'You have demonstrated enough to try with less support.' : 'More support is back whenever it helps.')
     return true
   }
 
@@ -83,6 +88,12 @@ export function ChallengeView({
       'learner_request_more_help',
     )
     recordDecision(decision, 'learner_request_more_help')
+  }
+
+  function handleReaction(nextReaction: GhostReaction, message: string) {
+    setReaction(nextReaction)
+    setGhostMessage(message)
+    if (nextReaction !== 'idle') window.setTimeout(() => setReaction('idle'), 900)
   }
 
   const exerciseTypes = ['original', 'mutation', 'transfer'] as const
@@ -111,6 +122,7 @@ export function ChallengeView({
           disabled={state.assistanceLevel === 'guided'}
           onRequest={handleMoreHelp}
         />
+        <GhostCompanion assistanceLevel={state.assistanceLevel} reactionEvent={reaction} message={ghostMessage} />
       </header>
 
       <nav className="exercise-progress" aria-label="Exercise progress">
@@ -127,23 +139,17 @@ export function ChallengeView({
         </ol>
       </nav>
 
-      {announcement && (
-        <div role="status" className="policy-announcement">
-          <p>{announcement}</p>
-          <button type="button" className="btn btn-secondary" onClick={() => {
-            setAnnouncement(null)
-            if (challengeRecord?.completed) setReadyToAdvance(true)
-          }}>
-            Got it
-          </button>
-        </div>
-      )}
+      {announcement && <PolicyAnnouncement reason={announcement} onDismiss={() => {
+        setAnnouncement(null)
+        if (challengeRecord?.completed) setReadyToAdvance(true)
+      }} />}
 
       {!challengeRecord?.completed && (
         <ExercisePanel
           challenge={challenge}
           challengeIndex={challengeIndex}
           onExerciseDone={() => setCompletionPending(true)}
+          onReaction={handleReaction}
         />
       )}
 

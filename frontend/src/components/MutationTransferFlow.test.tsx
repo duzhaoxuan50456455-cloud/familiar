@@ -91,6 +91,10 @@ describe('mutation and transfer learning flow', () => {
     await waitFor(() => expect(screen.getByText('Original Challenge')).toBeTruthy())
     expect(screen.queryByRole('button', { name: 'Next Challenge' })).toBeNull()
 
+    fireEvent.click(screen.getByRole('button', { name: /Show me a hint/ }))
+    await waitFor(() => expect(screen.getByText('A hint')).toBeTruthy())
+    expect(screen.queryByText('expected')).toBeNull()
+
     verifyCurrentExercise()
     await waitFor(() => expect(screen.getByText('✗ Incorrect')).toBeTruthy())
     fireEvent.click(screen.getByRole('button', { name: 'Continue to Mutation →' }))
@@ -116,6 +120,7 @@ describe('mutation and transfer learning flow', () => {
     const state = JSON.parse(screen.getByTestId('session-probe').textContent ?? '{}')
     expect(state.challenges[0].completed).toBe(true)
     expect(state.challenges[0].exercises.original.firstPrediction).toBe('guess')
+    expect(state.challenges[0].exercises.original.firstAttemptTag).toBe('after_assistance')
     expect(state.challenges[0].exercises.transfer.firstPrediction).toBe('guess')
     expect(state.policyHistory).toHaveLength(0)
 
