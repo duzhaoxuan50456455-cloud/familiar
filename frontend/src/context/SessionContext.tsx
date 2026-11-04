@@ -20,6 +20,7 @@ import type {
   ChallengeRecord,
   ChallengeSummary,
   ExerciseType,
+  PolicyEvent,
   SessionState,
 } from '../types'
 
@@ -39,6 +40,7 @@ export type SessionAction =
   | { type: 'VIEW_ASSISTANCE'; challengeIndex: number; exerciseType: ExerciseType }
   | { type: 'COMPLETE_CHALLENGE'; challengeIndex: number }
   | { type: 'ADVANCE_TO_NEXT_EXERCISE'; challengeIndex: number }
+  | { type: 'RECORD_POLICY_EVENT'; event: Omit<PolicyEvent, 'eventIndex'> }
 
 // ---------------------------------------------------------------------------
 // Initial state
@@ -175,6 +177,15 @@ export function sessionReducer(state: SessionState, action: SessionAction): Sess
           lastDownwardTransitionIndexBeforeCompletion: latestDownwardEventIndex(state),
         }
       })
+
+    case 'RECORD_POLICY_EVENT': {
+      const event = { ...action.event, eventIndex: state.policyHistory.length }
+      return {
+        ...state,
+        assistanceLevel: event.toLevel,
+        policyHistory: [...state.policyHistory, event],
+      }
+    }
 
     default:
       return state

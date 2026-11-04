@@ -32,6 +32,9 @@ function initialState(): SessionState {
 }
 
 describe('sessionReducer evidence tracking', () => {
+  it('initializes a session at Guided', () => {
+    expect(initialState().assistanceLevel).toBe('guided')
+  })
   it('records a first-attempt correct prediction as unaided evidence', () => {
     const state = sessionReducer(initialState(), {
       type: 'SUBMIT_PREDICTION', challengeIndex: 0, exerciseType: 'original', prediction: '1', correct: true,
@@ -70,6 +73,7 @@ describe('sessionReducer evidence tracking', () => {
     expect(state.challenges[0].exercises.original).toMatchObject({
       assistanceViewedBeforeFirstPrediction: true, firstAttemptTag: 'after_assistance',
     })
+    expect(state.assistanceLevel).toBe('guided')
   })
 
   it('does not let repeat submissions overwrite frozen first-attempt evidence', () => {
@@ -97,5 +101,21 @@ describe('sessionReducer evidence tracking', () => {
     })
     expect(state.challenges[0].exercises.original.firstPrediction).toBe('1')
     expect(state.challenges[1].exercises.original.firstPrediction).toBe('wrong')
+  })
+
+  it('records indexed policy events without changing historical evidence', () => {
+    const state = sessionReducer(initialState(), {
+      type: 'RECORD_POLICY_EVENT',
+      event: {
+        fromLevel: 'guided',
+        toLevel: 'hint',
+        trigger: 'upward_auto',
+        policy_reason: 'Two correct unaided predictions.',
+        afterChallengeId: 'loops_01',
+      },
+    })
+    expect(state.assistanceLevel).toBe('hint')
+    expect(state.policyHistory[0]).toMatchObject({ eventIndex: 0, policy_reason: 'Two correct unaided predictions.' })
+    expect(state.challenges[0].exercises.original.firstPrediction).toBeNull()
   })
 })
