@@ -63,7 +63,10 @@ export function ChallengeView({
       },
     })
     setAnnouncement(decision.policy_reason)
-    setGhostMessage(decision.newLevel === 'independent' ? 'You are growing more independent, one careful prediction at a time.' : decision.newLevel === 'hint' ? 'You have demonstrated enough to try with less support.' : 'More support is back whenever it helps.')
+    handleReaction(
+      decision.newLevel === 'independent' || eventTrigger === 'upward_auto' ? 'celebrating' : 'encouraging',
+      decision.newLevel === 'independent' ? 'You are growing more independent, one careful prediction at a time.' : decision.newLevel === 'hint' ? 'You have demonstrated enough to try with less support.' : 'More support is back whenever it helps.',
+    )
     return true
   }
 
@@ -88,6 +91,7 @@ export function ChallengeView({
       'learner_request_more_help',
     )
     recordDecision(decision, 'learner_request_more_help')
+    if (decision.changed) handleReaction('encouraging', 'More support is here whenever you want it.')
   }
 
   function handleReaction(nextReaction: GhostReaction, message: string) {

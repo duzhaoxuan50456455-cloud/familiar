@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { GhostCompanion } from './GhostCompanion'
 import { ProgressReport } from './ProgressReport'
@@ -27,9 +27,23 @@ describe('Milestone 6 components', () => {
     const { container, rerender } = render(<GhostCompanion assistanceLevel="guided" reactionEvent="idle" message="Hi" />)
     expect(container.querySelector('.ghost-guided')).toBeTruthy()
     rerender(<GhostCompanion assistanceLevel="hint" reactionEvent="thinking" message="Hi" />)
-    expect(container.querySelector('.ghost-hint.ghost-reaction-thinking')).toBeTruthy()
-    rerender(<GhostCompanion assistanceLevel="independent" reactionEvent="correct" message="Hi" />)
-    expect(container.querySelector('.ghost-independent.ghost-reaction-correct')).toBeTruthy()
+    expect(container.querySelector('.ghost-hint.ghost-expression-thinking')).toBeTruthy()
+    rerender(<GhostCompanion assistanceLevel="independent" reactionEvent="happy" message="Hi" />)
+    expect(container.querySelector('.ghost-independent.ghost-expression-happy')).toBeTruthy()
+  })
+
+  it('maps every learner-facing expression and keeps direct interaction local', () => {
+    const { container, rerender } = render(<GhostCompanion assistanceLevel="guided" reactionEvent="idle" message="Stay curious." />)
+    for (const expression of ['thinking', 'happy', 'oops', 'encouraging', 'celebrating'] as const) {
+      rerender(<GhostCompanion assistanceLevel="guided" reactionEvent={expression} message="Stay curious." />)
+      expect(container.querySelector(`.ghost-expression-${expression}`)).toBeTruthy()
+    }
+    const control = container.querySelector('.ghost-control')
+    if (!control) throw new Error('Ghost control is missing')
+    fireEvent.pointerEnter(control)
+    expect(container.querySelector('.ghost-hovered')).toBeTruthy()
+    fireEvent.click(control)
+    expect(screen.getByText('Boo! I’m right here with you.')).toBeTruthy()
   })
 
   it('reports independent and assisted first-attempt evidence separately without inventing partial results', () => {

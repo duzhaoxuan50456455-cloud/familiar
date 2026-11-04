@@ -59,7 +59,7 @@ export function ExercisePanel({ challenge, challengeIndex, onExerciseDone, onRea
     setAssistanceResponse(response)
     const unaided = !challengeRecord?.exercises[exerciseType].assistanceViewedBeforeFirstPrediction
     onReaction(
-      correct ? 'correct' : 'incorrect',
+      correct ? 'happy' : 'oops',
       correct
         ? unaided ? 'You reasoned that through without a hint.' : 'Nice reasoning. You checked your prediction.'
         : 'That was a useful check. I can help you trace it.',
@@ -85,6 +85,7 @@ export function ExercisePanel({ challenge, challengeIndex, onExerciseDone, onRea
     setAssistanceResponse(null)
     setHintShown(false)
     if (exerciseType === 'transfer') {
+      onReaction('celebrating', 'You completed this challenge. Nice persistence.')
       dispatch({ type: 'COMPLETE_CHALLENGE', challengeIndex })
       onExerciseDone()
       return
