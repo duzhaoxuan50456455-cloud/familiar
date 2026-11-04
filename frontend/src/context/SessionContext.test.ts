@@ -90,6 +90,7 @@ describe('sessionReducer evidence tracking', () => {
       firstPrediction: 'first', firstPredictionCorrect: true,
       assistanceViewedBeforeFirstPrediction: false, firstAttemptTag: 'unaided', attemptCount: 2,
     })
+    expect(state.policyHistory).toHaveLength(0)
   })
 
   it('preserves evidence for one challenge while another challenge is active', () => {

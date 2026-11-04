@@ -84,6 +84,30 @@
   padding: 0;
   font-size: inherit;
   color: inherit;
+  /* Override the global inline-flex code style: source must retain line breaks. */
+  display: block;
+  min-width: max-content;
+  white-space: pre;
+}
+
+.code-line {
+  white-space: inherit;
+}
+
+.code-line-changed {
+  background: #fef3c7;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  outline: 1px solid #d97706;
+  color: #713f12;
+}
+
+@media (prefers-color-scheme: dark) {
+  .code-line-changed {
+    background: #4a3510;
+    outline-color: #fbbf24;
+    color: #fef3c7;
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -94,6 +118,71 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.exercise-introduction {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+
+.exercise-introduction h3,
+.exercise-introduction p,
+.mutation-description {
+  margin: 0;
+}
+
+.exercise-introduction h3 {
+  font-size: 1.1rem;
+  color: var(--text-h);
+}
+
+.exercise-stage {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.exercise-introduction p,
+.mutation-description {
+  color: var(--text);
+}
+
+.mutation-description {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.exercise-progress ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.exercise-progress li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.exercise-progress-current {
+  color: var(--text-h) !important;
+  font-weight: 700;
+}
+
+.exercise-progress-completed {
+  color: #047857 !important;
 }
 
 /* ---------------------------------------------------------------------------

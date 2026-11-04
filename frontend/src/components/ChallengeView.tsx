@@ -32,6 +32,7 @@ export function ChallengeView({
   const { state, dispatch } = useSession()
   const [completionPending, setCompletionPending] = useState(false)
   const [announcement, setAnnouncement] = useState<string | null>(null)
+  const [readyToAdvance, setReadyToAdvance] = useState(false)
   const challengeRecord = state.challenges[challengeIndex]
   const levelLabel = {
     guided: 'Guided',
@@ -71,9 +72,7 @@ export function ChallengeView({
       state.policyHistory,
       'challenge_completed',
     )
-    if (!recordDecision(decision, 'challenge_completed')) {
-      onChallengeDone()
-    }
+    if (!recordDecision(decision, 'challenge_completed')) setReadyToAdvance(true)
   }, [completionPending, challengeRecord?.completed, state, onChallengeDone])
 
   function handleMoreHelp() {
@@ -84,6 +83,19 @@ export function ChallengeView({
       'learner_request_more_help',
     )
     recordDecision(decision, 'learner_request_more_help')
+  }
+
+  const exerciseTypes = ['original', 'mutation', 'transfer'] as const
+  const currentExercise = challengeRecord?.currentExercise ?? 'original'
+
+  function stageStatus(exerciseType: typeof exerciseTypes[number]): 'completed' | 'current' | 'upcoming' {
+    if (exerciseType === currentExercise && !challengeRecord?.completed) return 'current'
+    if (challengeRecord?.exercises[exerciseType].firstPrediction !== null) return 'completed'
+    return 'upcoming'
+  }
+
+  function stageLabel(exerciseType: typeof exerciseTypes[number]): string {
+    return exerciseType.charAt(0).toUpperCase() + exerciseType.slice(1)
   }
 
   return (
@@ -101,23 +113,45 @@ export function ChallengeView({
         />
       </header>
 
+      <nav className="exercise-progress" aria-label="Exercise progress">
+        <ol>
+          {exerciseTypes.map((exerciseType) => {
+            const status = stageStatus(exerciseType)
+            return (
+              <li key={exerciseType} className={`exercise-progress-${status}`} aria-current={status === 'current' ? 'step' : undefined}>
+                <span aria-hidden="true">{status === 'completed' ? '✓' : status === 'current' ? '●' : '○'}</span>
+                {stageLabel(exerciseType)}
+              </li>
+            )
+          })}
+        </ol>
+      </nav>
+
       {announcement && (
         <div role="status" className="policy-announcement">
           <p>{announcement}</p>
           <button type="button" className="btn btn-secondary" onClick={() => {
             setAnnouncement(null)
-            if (challengeRecord?.completed) onChallengeDone()
+            if (challengeRecord?.completed) setReadyToAdvance(true)
           }}>
             Got it
           </button>
         </div>
       )}
 
-      <ExercisePanel
-        challenge={challenge}
-        challengeIndex={challengeIndex}
-        onExerciseDone={() => setCompletionPending(true)}
-      />
+      {!challengeRecord?.completed && (
+        <ExercisePanel
+          challenge={challenge}
+          challengeIndex={challengeIndex}
+          onExerciseDone={() => setCompletionPending(true)}
+        />
+      )}
+
+      {readyToAdvance && challengeRecord?.completed && (
+        <button type="button" className="btn btn-primary" onClick={onChallengeDone}>
+          {challengeNumber === totalChallenges ? 'See Report' : 'Next Challenge'}
+        </button>
+      )}
     </div>
   )
 }
