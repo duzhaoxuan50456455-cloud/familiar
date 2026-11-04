@@ -1,0 +1,44 @@
+{
+  "id": "loops_03",
+  "concept": "for-loop with negative step",
+  "title": "Counting down with range()",
+  "description": "A for loop that uses a negative step to iterate in reverse order.",
+  "exercises": {
+    "original": {
+      "code": "for i in range(3, 0, -1):\n    print(i)",
+      "expected_output": "3\n2\n1",
+      "hint": "A negative step means range() counts downward. Where does it start, and when does it stop?",
+      "walkthrough": [
+        "range(3, 0, -1) starts at 3 and decreases by 1 on each iteration.",
+        "It stops before reaching the stop value of 0 — so 0 itself is never visited.",
+        "On each iteration i holds the current value in the descending sequence.",
+        "print(i) outputs that value.",
+        "The loop ends when the next step would equal or go past the stop value."
+      ]
+    },
+    "mutation": {
+      "code": "for i in range(3, 0, -1):\n    print(i * i)",
+      "expected_output": "9\n4\n1",
+      "diff_line": 1,
+      "diff_description": "Applies a multiplicative expression to i before printing.",
+      "hint": "The sequence of values i takes is identical to the original. What changes is the expression used to compute what gets printed.",
+      "walkthrough": [
+        "range(3, 0, -1) produces the same descending sequence as before.",
+        "On each iteration, the printed value is computed by applying an expression to i.",
+        "Trace that expression for each value of i in the sequence."
+      ]
+    },
+    "transfer": {
+      "code": "result = []\nfor i in range(3, 0, -1):\n    result.append(i)\nprint(result)",
+      "expected_output": "[3, 2, 1]",
+      "hint": "Instead of printing on each iteration, the loop is collecting values into a list. What will the list contain after all iterations complete?",
+      "walkthrough": [
+        "result starts as an empty list before the loop.",
+        "On each iteration, the current value of i is appended to result.",
+        "The loop visits the same sequence of values as the original exercise.",
+        "After all iterations, result holds every value that was appended, in order.",
+        "print(result) outputs the entire list once, after the loop ends."
+      ]
+    }
+  }
+}

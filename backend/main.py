@@ -3,6 +3,8 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.routers.challenges import router as challenges_router
+
 app = FastAPI(title="Familiar API", version="0.1.0")
 
 # CORS: restrict to the frontend origin.
@@ -16,6 +18,8 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
+
+app.include_router(challenges_router)
 
 
 @app.get("/health")

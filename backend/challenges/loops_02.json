@@ -1,0 +1,44 @@
+{
+  "id": "loops_02",
+  "concept": "for-loop with range step",
+  "title": "Stepping through range()",
+  "description": "A for loop that uses a step argument to control how range() advances.",
+  "exercises": {
+    "original": {
+      "code": "for i in range(0, 5, 2):\n    print(i)",
+      "expected_output": "0\n2\n4",
+      "hint": "range() can take a third argument that controls how much i changes on each iteration. What does a step of 2 mean for which values are visited?",
+      "walkthrough": [
+        "range(0, 5, 2) takes three arguments: start, stop, and step.",
+        "The sequence begins at 0 and advances by 2 each time, stopping before 5.",
+        "On the first iteration i is the start value.",
+        "Each subsequent iteration adds the step to the previous i.",
+        "The loop stops as soon as i would reach or exceed the stop value."
+      ]
+    },
+    "mutation": {
+      "code": "for i in range(0, 5, 2):\n    print(i + 1)",
+      "expected_output": "1\n3\n5",
+      "diff_line": 1,
+      "diff_description": "Applies an offset expression to i before printing.",
+      "hint": "The set of values i takes is exactly the same as before. What changes is what is done with i inside the loop body.",
+      "walkthrough": [
+        "range(0, 5, 2) still produces the same sequence of values for i.",
+        "On each iteration, the value printed is i with an expression applied to it.",
+        "Trace what that expression produces for each value of i in the sequence."
+      ]
+    },
+    "transfer": {
+      "code": "count = 0\nfor i in range(0, 5, 2):\n    count = count + 1\nprint(count)",
+      "expected_output": "3",
+      "hint": "The loop body no longer uses i at all — it just runs once per iteration. How many iterations does range(0, 5, 2) produce?",
+      "walkthrough": [
+        "count is initialised to 0 before the loop.",
+        "On every iteration, count increases by 1 — regardless of the value of i.",
+        "So count ends up equal to the total number of iterations the loop runs.",
+        "Determine how many values range(0, 5, 2) produces to find the final count.",
+        "print(count) runs once after the loop ends."
+      ]
+    }
+  }
+}
