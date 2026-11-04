@@ -110,7 +110,9 @@ export function ChallengeView({
   }
 
   function stageLabel(exerciseType: typeof exerciseTypes[number]): string {
-    return exerciseType.charAt(0).toUpperCase() + exerciseType.slice(1)
+    const label = exerciseType.charAt(0).toUpperCase() + exerciseType.slice(1)
+    const magic = { original: 'Discover the Spell', mutation: 'Transform the Spell', transfer: 'Cast It Yourself' }[exerciseType]
+    return `${label} — ${magic}`
   }
 
   return (
@@ -126,8 +128,11 @@ export function ChallengeView({
           disabled={state.assistanceLevel === 'guided'}
           onRequest={handleMoreHelp}
         />
-        <GhostCompanion assistanceLevel={state.assistanceLevel} reactionEvent={reaction} message={ghostMessage} />
       </header>
+
+      <div className={`ghost-safe-zone ghost-zone-${state.assistanceLevel}`} data-ghost-zone={state.assistanceLevel}>
+        <GhostCompanion assistanceLevel={state.assistanceLevel} reactionEvent={reaction} message={ghostMessage} />
+      </div>
 
       <nav className="exercise-progress" aria-label="Exercise progress">
         <ol>

@@ -89,6 +89,9 @@ describe('mutation and transfer learning flow', () => {
     )
 
     await waitFor(() => expect(screen.getByText('Original Challenge')).toBeTruthy())
+    expect(screen.getByText('Discover the Spell')).toBeTruthy()
+    expect(container.querySelector('[data-ghost-zone="guided"]')).toBeTruthy()
+    expect(container.querySelector('.code-block')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Next Challenge' })).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: /Show me a hint/ }))
@@ -100,6 +103,7 @@ describe('mutation and transfer learning flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continue to Mutation →' }))
 
     await waitFor(() => expect(screen.getByText('Mutation Challenge')).toBeTruthy())
+    expect(screen.getByText('Transform the Spell')).toBeTruthy()
     expect(screen.getByText('Applies an arithmetic expression before printing.')).toBeTruthy()
     expect(container.querySelectorAll('[data-changed="true"]')).toHaveLength(1)
 
@@ -108,6 +112,7 @@ describe('mutation and transfer learning flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continue to Transfer →' }))
 
     await waitFor(() => expect(screen.getByText('Transfer Challenge')).toBeTruthy())
+    expect(screen.getByText('Cast It Yourself')).toBeTruthy()
     expect(screen.getByText(/Apply for-loop with range in this new context/)).toBeTruthy()
     expect(container.querySelectorAll('[data-changed="true"]')).toHaveLength(0)
 

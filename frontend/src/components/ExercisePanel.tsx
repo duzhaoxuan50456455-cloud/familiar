@@ -121,7 +121,7 @@ export function ExercisePanel({ challenge, challengeIndex, onExerciseDone, onRea
     <div className="exercise-panel">
       <section className="exercise-introduction" aria-labelledby="exercise-stage-title">
         <p className="exercise-stage" aria-hidden="true">{exerciseType}</p>
-        <h3 id="exercise-stage-title">{stageCopy[exerciseType].title}</h3>
+        <h3 id="exercise-stage-title"><span>{stageCopy[exerciseType].title}</span><em>{exerciseType === 'original' ? 'Discover the Spell' : exerciseType === 'mutation' ? 'Transform the Spell' : 'Cast It Yourself'}</em></h3>
         <p>{stageCopy[exerciseType].instruction}</p>
       </section>
 

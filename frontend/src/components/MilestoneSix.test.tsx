@@ -46,6 +46,12 @@ describe('Milestone 6 components', () => {
     expect(screen.getByText('Boo! I’m right here with you.')).toBeTruthy()
   })
 
+  it('keeps ghost visibility presentation separate from the interaction expression', () => {
+    const { container } = render(<GhostCompanion assistanceLevel="independent" reactionEvent="encouraging" message="Hi" />)
+    expect(container.querySelector('.ghost-independent.ghost-expression-encouraging')).toBeTruthy()
+    expect(container.querySelector('.ghost-control')).toBeTruthy()
+  })
+
   it('reports independent and assisted first-attempt evidence separately without inventing partial results', () => {
     const state: SessionState = {
       challenges: [record], currentChallengeIndex: 0, assistanceLevel: 'hint', sessionComplete: true,
